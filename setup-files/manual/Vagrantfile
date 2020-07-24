@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.provision "shell", path: "bootstrap.sh"
+  # Kubernetes Master 
+  config.vm.define "kubemaster" do |kubemaster|
+    kubemaster.vm.box = "ubuntu/xenial64"
+    kubemaster.vm.hostname = "kubemaster.example.com"
+    kubemaster.vm.network "private_network", ip: "172.16.1.200"
+    kubemaster.vm.provider "virtualbox" do |v|
+      v.name = "kubemaster"
+      v.memory = 2048
+      v.cpus = 2
+    end
+  end
+
+  NodeCount = 2
+
+  # Kubernetes Minions
+  (1..NodeCount).each do |i|
+    config.vm.define "kubeminion#{i}" do |kubeminion|
+      kubeminion.vm.box = "ubuntu/xenial64"
+      kubeminion.vm.hostname = "kubeminion#{i}.example.com"
+      kubeminion.vm.network "private_network", ip: "172.16.1.20#{i}"
+      kubeminion.vm.provider "virtualbox" do |v|
+        v.name = "kubeminion#{i}"
+        v.memory = 1024
+        v.cpus = 1
+      end
+      kubeminion.vm.provision "shell", path: "bootstrap_kubeminion.sh"
+    end
+  end
+
+end
