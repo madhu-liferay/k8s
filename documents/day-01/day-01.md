@@ -1,4 +1,110 @@
-# DAY 01
+## **Working with YAML**
+
+```bash
+set nu
+set expandtab
+set tabstop=2
+set shiftwidth=2
+```
+
+---
+
+## **Setting up a Kubernetes Cluster using kubeadm**
+
+---
+
+1. Install Container Runtime (Docker) on all the nodes
+
+```bash
+sudo apt update
+sudo apt install -y docker.io 
+sudo systemctl enable docker.service
+```
+
+2. Install Kubernetes on all the nodes
+
+```bash
+sudo apt install -y apt-transport-https curl
+
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+
+sudo apt-get install -y kubelet kubeadm kubectl
+
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+
+3. On the controller VM, execute:
+
+```bash
+sudo kubeadm init --pod-network-cidr 192.168.0.0/16
+```
+
+4. On the controller VM, to set up kubectl for the ubuntu user, run:
+
+```bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+5. On the other nodes execute the `kubeadm join` command, found at the end of the output of `kubeadm init` command.
+
+6. On the controller, verify that all nodes have joined
+
+```bash
+kubectl get nodes
+```
+
+7. On the controller, install Calico from the manifest:
+
+```bash
+curl https://docs.projectcalico.org/manifests/calico.yaml -O
+kubectl apply -f calico.yaml
+```
+
+8. On the controller, verify that all nodes are ready
+
+```bash
+kubectl get nodes
+```
+
+---
+
+## **Basic Commands To Work With kubectl**
+
+---
+
+```bash
+# to list the nodes of the kubernetes cluster
+kubectl get nodes
+# to list the pods of the kubernetes cluster
+kubectl get pods
+# to list the pods of the kube-system namespace
+kubectl get pods --namespace kube-system
+# OR
+kubectl get po -n kube-system
+# to list the deployments of the kubernetes cluster
+kubectl get deployments
+# OR
+kubectl get deploy
+```
+
+Prior to version Kubernetes v18 the `kubectl run` command was used to create deployment.
+
+```bash
+# Prior to v18 it will create deployment with a deprecation warning
+kubectl run nginx-d --image=nginx:alpine
+# From v18 it started creating pods
+kubectl run nginx-p --image=nginx:alpine
+```
+
+---
 
 ## **Working with etcd**
 

@@ -1,0 +1,48 @@
+{
+  "employees": [
+      {
+        "firstname": "ABC",
+        "lastname": "XYZ",
+        "addresses": [
+            {
+              "addresslines": [
+                  "This is line 1",
+                  "This is line 2"
+                ],
+              "city": "PQR",
+              "postal-code": "000000"
+            },
+            {
+              "addresslines": [
+                  "This is another line 2",
+                  "This is another line 2"
+                ],
+              "city": "WOW",
+              "postal-code": "222222"
+            }
+          ]
+      },
+    			{
+        "firstname": "NPO",
+        "lastname": "TYC",
+        "addresses": [
+            {
+              "addresslines": [
+                  "This is line 1",
+                  "This is line 2"
+                ],
+              "city": "COOL",
+              "postal-code": "111111"
+            },
+            {
+              "addresslines": [
+                  "This is another line 1",
+                  "This is another line 2"
+                ],
+              "city": "FAB",
+              "postal-code": "333333"
+            }
+          ]
+      }
+    ]
+}

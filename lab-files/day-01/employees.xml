@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<employees>
+    <employee>
+        <firstname>ABC</firstname>
+        <lastname>XYZ</lastname>
+        <addresses>
+            <address>
+                <addresslines>
+                    <addressline>This is line 1</addressline>
+                    <addressline>This is line 2</addressline>
+                </addresslines>
+                <city>PQR</city>
+                <postal-code>000000</postal-code>
+            </address>
+            <address>
+                <addresslines>
+                    <addressline>This is another line 2</addressline>
+                    <addressline>This is another line 2</addressline>
+                </addresslines>
+                <city>WOW</city>
+                <postal-code>222222</postal-code>
+            </address>            
+        </addresses>
+    </employee>
+    <employee>
+        <firstname>NPO</firstname>
+        <lastname>TYC</lastname>
+        <addresses>
+            <address>
+                <addresslines>
+                    <addressline>This is line 1</addressline>
+                    <addressline>This is line 2</addressline>
+                </addresslines>
+                <city>COOL</city>
+                <postal-code>111111</postal-code>
+            </address>
+            <address>
+                <addresslines>
+                    <addressline>This is another line 1</addressline>
+                    <addressline>This is another line 2</addressline>
+                </addresslines>
+                <city>FAB</city>
+                <postal-code>333333</postal-code>
+            </address>
+        </addresses>
+    </employee>    
+</employees>
