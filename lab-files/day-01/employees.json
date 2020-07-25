@@ -1,3 +1,6 @@
+employees[0].firstname
+employees[1].addresses[0].city
+
 {
   "employees": [
       {
@@ -14,15 +17,15 @@
             },
             {
               "addresslines": [
+                  "This is another line 1",
                   "This is another line 2",
-                  "This is another line 2"
                 ],
               "city": "WOW",
               "postal-code": "222222"
             }
           ]
       },
-    			{
+      {
         "firstname": "NPO",
         "lastname": "TYC",
         "addresses": [

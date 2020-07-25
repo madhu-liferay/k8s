@@ -1,0 +1,27 @@
+employees:
+- firstname: ABC
+  lastname: XYZ
+  addresses: 
+  - addresslines:
+    - This is line 1
+    - This is line 2
+    city: PQR
+    postalcode: "000000"
+  - addresslines:
+    - This is another line 1
+    - This is another line 2
+    city: WOW
+    postalcode: 222222 
+- firstname:
+  lastname: 
+  addresses: 
+  - addresslines:
+    -
+    -
+    city: 
+    postalcode:
+  - addresslines:
+    -
+    -
+    city: 
+    postalcode:

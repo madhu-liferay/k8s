@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: python-flask-pod
+  labels:
+    app: python-flask-app
+    role: webapp
+    tier: front-end
+spec:
+  containers:
+  - name: python-flask-container
+    image: khozemanullwala/python-flask-app:latest
+    ports:
+    - containerPort: 80
