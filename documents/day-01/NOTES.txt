@@ -1,0 +1,54 @@
+One Server 
+
+Process does not sync up well - resource crunch
+
+Big Server - Virtual Machines
+
+OS (space)
+Necessary Binary and Libraries
+
+Dedicated Hardware Resources
+
+-------
+Running image is nothing but container
+
+Image  --> Minimal OS, Necessary Binaries and Lib for your app, deployed app
+
+Immutable
+
+build, package and ship (portable)
+
+cgroups, namespaces ----> isolated process (containers)
+
+https://hub.docker.com
+
+https://labs.play-with-docker.com
+
+docker container run --detach --rm --name app1 --publish 80:80 khozemanullwala/python-flask-app:latest
+
+docker container run --detach --rm --name app2 --publish 8888:80 khozemanullwala/python-flask-app:latest
+
+docker container run --detach --rm --name app3 --publish 9999:80 khozemanullwala/python-flask-app:latest
+
+docker container ls
+
+docker ps
+
+
+docker container stop app1
+
+
+Containers are ephemeral in nature -  Short Lived --> Create and Delete
+
+Kubernetes - Container Orchestration, automate the deployments, scale as per the need or requirement, enables services so that communication is possible across different applications
+
+declarative approach (manifest files) YAML - Human Readable mostly used for configurational purpose
+
+---
+
+kubectl get pods -n kube-system
+
+
+------------
+
+Question Bank 
