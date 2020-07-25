@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<employees>
+    <employee>
+        <firstname>ABC</firstname>
+        <lastname>XYZ</lastname>
+        <addresses>
+            <address>
+                <addresslines>
+                    <line>This is line 1</line>
+                    <line>This is line 2</line>
+                </addresslines>
+                <city>PQR</city>
+                <postal-code>000000</postal-code>
+            </address>
+        </addresses>
+    </employee>
+</employees>
