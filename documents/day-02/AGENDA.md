@@ -1,10 +1,10 @@
-# DAY - 02 
+# DAY - 02
 
 ## AGENDA
 
 ---
 
-* Revision on Kubernetes Cluster Architecture 
+* Revision on Kubernetes Cluster Architecture
 * Working with etcd
 * Creating Pods using YAML and Command
 * Creating Deployments using YAML and Command
@@ -19,7 +19,7 @@
 
 ---
 
-### Revision on Kubernetes Cluster Architecture 
+### Revision on Kubernetes Cluster Architecture
 
 ---
 
@@ -28,6 +28,9 @@
 ### Working with etcd
 
 ---
+
+distributed key value store
+
 
 1. Download the etcd by using the below command -
 
@@ -111,7 +114,7 @@ sudo cp /var/lib/etcd/member/snap/db another-snapshot.db
 sudo ETCDCTL_API=3 etcdctl snapshot status snapshot.db -w=table
 ```
 
-12. Zip up the content of the `etcd` directory for restoring the datastore from back up in case of server failure 
+12. Zip up the content of the `etcd` directory for restoring the datastore from back up in case of server failure
 
 ```bash
 sudo tar -zcvf etcd.tar.gz /etc/kubernetes/pki/etcd
@@ -123,7 +126,70 @@ sudo tar -zcvf etcd.tar.gz /etc/kubernetes/pki/etcd
 
 ---
 
+```bash
+kubectl explain pod.spec 
+kubectl explain pod.spec --recursive
+kubectl explain pod.spec --recursive | grep -i containers -A 20 -m 1
+kubectl explain service.spec 
+kubectl explain service.spec --recursive
+```
+
+Images from different registry `domain/repository/image:tag`
+
+```txt
+nginx:alpine ---> [docker.io/library]/nginx:alpine
+gcr.io/google-samples/kubernetes-bootcamp:v1
+```
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-bootcamp-pod
+  labels:
+    app: k8s-bootcamp-app
+spec:
+  containers:
+  - name: k8s-bootcamp-container
+    image: gcr.io/google-samples/kubernetes-bootcamp:v1
+    ports:
+    - containerPort: 8080
+```
+
+---
+
 ### Creating Deployments using YAML and Command
+
+---
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-bootcamp-deploy
+  labels:
+    app: k8s-bootcamp-d
+spec:
+  replicas: 3
+  selector:
+    matchLabels: 
+      app: k8s-bootcamp-app
+  template:
+    metadata:
+      name: k8s-bootcamp-pod
+      labels:
+        app: k8s-bootcamp-app
+    spec:
+      containers:
+      - name: k8s-bootcamp-container
+        image: gcr.io/google-samples/kubernetes-bootcamp:v1
+        ports:
+        - containerPort: 8080
+```
+
+```bash
+kubectl apply -f <>.yml
+```
 
 ---
 
@@ -136,6 +202,29 @@ sudo tar -zcvf etcd.tar.gz /etc/kubernetes/pki/etcd
 ---
 
 ### Understanding Types of Services and use of it
+
+---
+
+
+```yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-bootcamp-svc
+  labels:
+    app: k8s-bootcamp-app
+spec:
+  selector:
+    app: k8s-bootcamp-app
+  ports:
+  - port: 80
+    targetPort: 8080
+```
+
+```bash
+kubectl get services
+kubectl get endpoints
+```
 
 ---
 
@@ -157,7 +246,7 @@ sudo tar -zcvf etcd.tar.gz /etc/kubernetes/pki/etcd
 
 ```bash
 sudo apt update
-sudo apt install -y docker.io 
+sudo apt install -y docker.io
 sudo systemctl enable docker.service
 ```
 
