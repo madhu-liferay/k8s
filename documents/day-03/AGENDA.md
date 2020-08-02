@@ -224,7 +224,7 @@ sudo kubeadm token generate
 sudo kubeadm token create <GENERATED-TOKEN> --print-join-command --ttl=0
 
 # Sample Output
-kubeadm join 172.16.1.100:6443 --token <GENERATED-TOKEN> --discovery-token-ca-cert-hash <DISCOVERY-TOKEN>
+kubeadm join <MASTER-NODE-IP>:6443 --token <GENERATED-TOKEN> --discovery-token-ca-cert-hash <DISCOVERY-TOKEN>
 
 # to view the list of token use
 sudo kubeadm token list
