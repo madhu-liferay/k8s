@@ -27,6 +27,68 @@
 
 ---
 
+#### ReplicationController
+
+```yml
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+  name: nginx-rc
+  labels:
+    app: nginx-rc
+spec:
+  replicas: 5
+  selector:
+    name: webserver
+  template:
+    metadata:
+      labels:
+        name: webserver
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+```
+
+#### ReplicaSet
+
+```bash
+kubectl get pods --show-labels
+kubectl explain replicationcontroller.spec --recursive | grep -i selector -A 7 -m 1
+kubectl explain replicaset.spec --recursive | grep -i selector -A 7 -m 1
+```
+
+
+```yml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata: 
+  name: nginx-rs
+  labels:
+    app: nginx-rs
+spec:
+  replicas: 5
+  selector:
+    # matchLabels
+    #   name: nginx
+    matchExpressions:
+    - key: name
+      operator: In
+      values: [nginx]
+  template:
+    metadata:
+      labels:
+        name: nginx
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+```
+
 
 
 ---
@@ -36,6 +98,9 @@
 ---
 
 
+create --> imperative way of saying you are managing everything
+
+apply --> declarative way of letting kubernetes manage the resources for you
 
 ---
 
@@ -43,7 +108,19 @@
 
 ---
 
+---
 
+### Tips and Tricks For autocompletion and alias
+
+---
+
+```bash
+vim ~/.bashrc
+source <(kubectl completion bash)
+alias k=kubectl
+complete -F __start_kubectl k
+source ~/.bashrc
+```
 
 ---
 
@@ -131,6 +208,72 @@ kubectl apply -f calico.yaml
 kubectl get nodes
 ```
 
+---
+
+### **Joining a node to the Kubernetes cluster using kubeadm**
+
+---
+
+1. To get the join token execute the **`kubeadm token`** commands given below on the master node - 
+
+```bash
+# to generate random token
+sudo kubeadm token generate 
+
+# to print join command that never expires
+sudo kubeadm token create <GENERATED-TOKEN> --print-join-command --ttl=0
+
+# Sample Output
+kubeadm join <MASTER-NODE-IP>:6443 --token <GENERATED-TOKEN> --discovery-token-ca-cert-hash <DISCOVERY-TOKEN>
+
+# to view the list of token use
+sudo kubeadm token list
+```
+
+**NOTE**: Now, to join many nodes to this Kubernetes cluster, execute the **`kubeadm join`** command on the another node where the **`container runtime`**, **`kubeadm`**, **`kubelet`**, and **`kubectl`** are already installed.
+
+2. To gain remote access of the virtual machine, which has docker as the container runtime pre-installed, use -
+
+```cmd
+vagrant ssh kubeminion2
+```
+
+Or you can use the putty client.
+
+3. Execute the commands below one by one as specified in the Kubernetes documentation on the minion1 node -
+
+```bash
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+
+sudo apt-get install -y kubelet kubeadm kubectl
+
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+
+[Reference Link - Kubernetes Docs](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)
+
+4. Execute the join token command copied from step1 on the `minion1` node - 
+
+```bash
+sudo kubeadm join 172.16.1.100:6443 --token <GENERATED-TOKEN> \
+--discovery-token-ca-cert-hash <DISCOVERY-TOKEN-HASH>
+```
+
+5. To check the status of the node joining this Kubernetes cluster execute the command below on the `master` node -
+
+```bash
+kubectl get nodes
+```
+
+---
 
 ### Revision of every object deployed using yaml, command, and how to create yaml template quickly
 
@@ -138,19 +281,22 @@ kubectl get nodes
 
 #### POD
 
+domain-name/repository/image:tag
+docker.io/library/nginx:latest
+
 ```yml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: k8s-bootcamp-pod
+  name: nginx-pod
   labels:
-    app: k8s-bootcamp-app
+    app: webserver
 spec:
   containers:
-  - name: k8s-bootcamp-container
-    image: gcr.io/google-samples/kubernetes-bootcamp:v1
+  - name: nginx-container
+    image: nginx:alpine
     ports:
-    - containerPort: 8080
+    - containerPort: 80
 ```
 
 ```bash
@@ -175,25 +321,25 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k8s-bootcamp-deploy
+  name: nginx-deploy
   labels:
-    app: k8s-bootcamp-d
+    app: nginx-d
 spec:
   replicas: 3
   selector:
     matchLabels: 
-      app: k8s-bootcamp-app
+      app: webserver
   template:
     metadata:
-      name: k8s-bootcamp-pod
+      name: nginx-pod
       labels:
-        app: k8s-bootcamp-app
+        app: webserver
     spec:
       containers:
-      - name: k8s-bootcamp-container
-        image: gcr.io/google-samples/kubernetes-bootcamp:v1
+      - name: nginx-container
+        image: nginx:alpine
         ports:
-        - containerPort: 8080
+        - containerPort: 80
 ```
 
 ```bash
@@ -218,15 +364,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: k8s-bootcamp-svc
+  name: nginx-svc
   labels:
-    app: k8s-bootcamp-app
+    app: webserver
 spec:
   selector:
-    app: k8s-bootcamp-app
+    app: webserver
   ports:
   - port: 80
-    targetPort: 8080
 ```
 
 ```bash
@@ -238,6 +383,8 @@ kubectl get endpoints
 # kubectl command to expose a service
 
 ```
+
+
 
 ---
 
@@ -358,6 +505,35 @@ target:
 curl --header "Content-Type: application/json" --request POST --data '{ "apiVersion": "v1", "kind": "Binding", "metadata": { "name" : "nginx-pod"}, "target": { "apiVersion": "v1", "kind": "Node", "name": "<YOUR-NODE-NAME>"}}' http://localhost:8001/api/v1/namespaces/default/pods/nginx-pod/binding
 ```
 
+**NOTE**: Do not forget to move back the `kube-scheduler.yaml` back to the same location
+
+```bash
+sudo mv ~/kube-scheduler.yaml /etc/kubernetes/manifests/kube-scheduler.yaml 
+```
+
+---
+
+### Taints and Tolerations
+
+---
+
+[Command Reference](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#taint)
+
+[Property Reference](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/#concepts)
+
+
+---
+
+### NodeSelector and Node Affinity
+
+---
+
+[Reference Link](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector) 
+
+---
+
+### Taints & Tolerations, and Node Affinity
+
 ---
 
 ### Resource Requirements and Limits
@@ -365,6 +541,10 @@ curl --header "Content-Type: application/json" --request POST --data '{ "apiVers
 ---
 
 [Reference Link](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)
+
+[QoS Class](https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#qos-classes)
+
+[Additional Reference](https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/)
 
 ---
 
@@ -374,11 +554,44 @@ curl --header "Content-Type: application/json" --request POST --data '{ "apiVers
 
 [Reference Link](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)
 
+```yml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  namespace: kube-system
+  labels:
+    k8s-app: nginx
+spec:
+  selector:
+    matchLabels:
+      name: nginx
+  template:
+    metadata:
+      labels:
+        name: nginx
+    spec:
+      tolerations:
+      # this toleration is to have the daemonset runnable on master nodes
+      # remove it if your masters can't run pods
+
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        # request and limit memory to 200Mi
+        # request cpu to 100m
+```
+
 ---
 
 ### Static Pods
 
 ---
+
+```txt
+/var/lib/kubelet/config.yaml
+```
+
 
 [Reference Link](https://kubernetes.io/docs/tasks/configure-pod-container/static-pod/#static-pod-creation)
 
