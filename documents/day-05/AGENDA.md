@@ -326,13 +326,13 @@ spec:
     volumeMounts:
     - name: shared-vol
       mountPath: /var/log
-
-
 ```
 
 ```bash
 kubectl logs pod-name -c container-name
 ```
+
+---
 
 ### Different Patterns for Multi-containers Pod
 
@@ -342,40 +342,10 @@ kubectl logs pod-name -c container-name
 
 ---
 
-```yml
-
-```
-
----
-
 #### Adapter
 
 ---
 
-```yml
-
-```
-
----
-
-### InitContainers
-
----
-
-[Reference Link](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
-
-
-
----
-
-### Get Logs of a Pod container
-
----
-
-
-
----
-
-### Exec into a Pod container
+#### Ambassador
 
 ---
