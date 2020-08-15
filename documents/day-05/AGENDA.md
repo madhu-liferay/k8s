@@ -329,6 +329,7 @@ spec:
 ```
 
 ```bash
+kubectl logs --help
 kubectl logs pod-name -c container-name
 ```
 
