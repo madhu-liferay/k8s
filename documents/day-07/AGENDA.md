@@ -4,7 +4,7 @@
 
 ---
 
-* Metric Server and Use of top `command`
+* Metric Server and Use of `top` command
 * Pod Autoscaling using hpa
 * Cluster Maintenance - drain, cordon, uncordon
 * Understanding Storage
@@ -15,6 +15,12 @@
 ---
 
 ### RECAP
+
+---
+
+Day 06  - https://github.com/rustyamigo/k8s/blob/master/documents/day-06/AGENDA.md
+
+Today's - https://github.com/rustyamigo/k8s/blob/master/documents/day-07/AGENDA.md
 
 ---
 
@@ -363,6 +369,98 @@ kubectl get pods -o wide
 
 [Upgrading from v1.16 to v1.17](https://v1-17.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
 
+
+---
+
+```bash
+sudo su -
+apt update
+apt-cache madison kubeadm
+
+# 1.17.11-00
+
+# replace x in 1.17.x-00 with the latest patch version
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm=1.17.11-00 && \
+apt-mark hold kubeadm
+
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubeadm=1.17.11-00
+
+kubeadm version
+
+kubectl drain kmaster --ignore-daemonsets
+
+sudo kubeadm upgrade plan
+
+sudo kubeadm upgrade apply v1.17.11
+
+kubectl uncordon kmaster
+
+
+sudo su -
+
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.17.11-00 kubectl=1.17.11-00 && \
+apt-mark hold kubelet kubectl
+
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubelet=1.17.11-00 kubectl=1.17.11-00
+
+exit
+
+sudo systemctl restart kubelet
+
+kubectl drain kslave1
+
+# replace x in 1.17.x-00 with the latest patch version
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm=1.17.11-00 && \
+apt-mark hold kubeadm
+
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubeadm=1.17.11-00
+
+kubeadm upgrade node
+
+# replace x in 1.17.x-00 with the latest patch version
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.17.11-00 kubectl=1.17.11-00 && \
+apt-mark hold kubelet kubectl
+
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubelet=1.17.11-00 kubectl=1.17.11-00
+
+systemctl restart kubelet
+
+exit
+
+exit
+
+```
+
+
+```bash
+sudo docker image build -f Dockerfile1 -t <docker-id>/py-1:latest .
+sudo docker image build -f Dockerfile2 -t <docker-id>/py-2:latest .
+
+sudo docker container run --detach --rm --name python-app-1 --publish 8888:80 khozemanullwala/py-1:latest
+
+sudo docker container exec -it python-app-1 bash
+
+
+sudo docker container run -it --name alpine-demo --mount src=my-vol,dst=/xyz alpine sh
+
+
+sudo docker container run -it --name alpine-two --mount src=my-vol,dst=/simplilearn alpine sh
+
+
+sudo docker container run --name webserver --mount type=bind,src=$(pwd)/web-dir,dst=/usr/share/nginx/html,readonly --publish 10000:80 nginx:alpine
+```
 
 
 ---
