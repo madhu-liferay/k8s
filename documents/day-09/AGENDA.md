@@ -14,22 +14,72 @@
 
 * Using hostPath volume type in Pod
 
-
+```yml
+volumes:
+  hostPath:
+    path:
+---
+volumes:
+  emptyDir: {}
+```
 
 * Creating PersistentVolume and PersistentVolumeClaims in Kubernetes
 
+persistencevolume (for the entire cluster)
 
+```txt
+storageClassName
+capacity
+  storage
+volumeMode: FileSystem | Block
+accessModes:
+- RWO
+- RWX
+- ROX
+persistentVolumeReclaimPolicy: Retain | Recycle | Delete 
+```
+
+developer - persistentvolumeclaim (namespaced resource)
 
 * Using PersistentVolumeClaim in Pod
 
-
+```yml
+volumes:
+  persistentVolumeClaim:
+    claimName: 
+```
 
 * Kubernetes Security Primitives
 
+Who can access? Authentication
 
+username and password through static file and token
+servicaccount
+certificates
+
+What they can do? Authorization
+
+RBAC
 
 * Understanding API Primitives
 
+Core Group --> api/v1
+
+resources
+
+pod, serviceaccount, configmap, secrets, service
+
+actions/ verbs
+
+Named Group -->
+
+apps
+
+deployment, replicasets
+
+rbac.authorization.k8s.io
+
+Role
 
 
 * Using Role and RoleBinding
@@ -50,6 +100,11 @@
 
 ---
 
+a user account (used by - humans )
+
+a service account (used by apps, machines, bots etc)
+
+
 1. To view the list of service account in the namespace use the command -
 
 ```bash
@@ -64,7 +119,7 @@ kubectl get sa
 kubectl describe sa default
 ```
 
-**NOTE**: Mountable secrets `<YOUR-MOUNTABLE-SECRET>`
+**NOTE**: Mountable secrets `default-token-xdvvk`
 
 3. Get the secrets in the default namespace
 
@@ -94,7 +149,7 @@ kubectl run nginx-pod --image=nginx:alpine --restart=Never
 kubectl describe pod nginx-pod | grep -i mounts -A 5
 ```
 
-**NOTE**: The path  
+**NOTE**: The path  `/var/run/secrets/kubernetes.io/serviceaccount`
 
 7. Observe the volumes of the pod
 
@@ -116,6 +171,8 @@ cd /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
 10.  Do a curl using the files in this directory
+
+<service-name>.<namespace>.svc.cluster.local
 
 ```bash
 curl -k https://kubernetes.default.svc.cluster.local/version --cacert ca.crt --header "Authorization: Bearer $(cat token)" 
@@ -235,6 +292,13 @@ curl -k https://kubernetes.default.svc.cluster.local/api/v1/namespaces/default/p
 
 **NOTE**: This pod uses the pod-list-sa service account for which ClusterRoleBinding is already created. Hence, it displays the list of pod using the service account token. 
 
+
+1. creating a namespace --> you get a default serviceaccount
+2. You can create your own serviceaccount
+3. While creating your pod you specified which serviceaccount to use
+4. You created a clusterrole (you gave certain actions that can be performed on your entire cluster), clusterrolebinding to link serviceaccount with that clusterrole
+5. Secrets related to the serviceaccount gets mounted on a specific path 
+
 ---
 
 #### ServiceAccount Declaratively
@@ -291,7 +355,7 @@ spec:
 
 ---
 
-
+**NOTE**: Capabilities works in securityContext only at the container level
 
 ---
 
@@ -299,7 +363,20 @@ spec:
 
 ---
 
+What are certificates used for?
 
+It established trust between two parties during a transaction.
+
+Symmetric Encryption?
+
+
+Public Key
+*.pem 
+*.crt
+
+Private
+*-key.pem
+*.key
 
 ---
 
@@ -307,7 +384,34 @@ spec:
 
 ---
 
+1. A user first creates the key
 
+```bash
+openssl genrsa -out another-admin.key 2048
+```
+
+2. Generate a certificate signing request
+
+```bash
+openssl req -new -key another-admin.key -subj "/CN=abc-admin" -out another-admin.csr
+
+cat another-admin.csr | base64 | tr -d "\n"
+```
+
+3. The administrator takes the content in base64 format and creates a certificate signing request object
+
+```yml
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: abc-admin
+spec:
+  groups:
+  - system:authenticated
+  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1dUQ0NBVUVDQVFBd0ZERVNNQkFHQTFVRUF3d0pZV0pqTFdGa2JXbHVNSUlCSWpBTkJna3Foa2lHOXcwQgpBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF0RUdFMjJycy9pZENRS2Zrc3cycDl0dnI4dzgrYWJBMURmUll3aHpMClh1NDJBU05EUWhSUTlRTG1iL0Yxc1owRUxjTUxtWjVPRWhKVENseGRHb0lsSkUzVjhRNmNuYi81OFB0a092eCsKWG5ySFQranpzQWcxeEVtWmo0NmxlK0xpQlM2MVoxMGxmME53VWZTZGRlMWlsQWlkSjhNam4xUnU5c3lnVGF6ZQpnZzg0RkdwNU9jbU9GRDB6c21NUkRPeEFrNThWcVcwaG9UUDM1QXZMbjRUZXJidkcxSHRaTUtLc29tOCtTcFczCllQSzNpZWRvZE53ZUk1bFlFem9XcnIySXJVYU5ZZnZVRU9CcGoyQ3ZFWktNbDBMcElqMHRqTEJsOFVxVy9iT24KQml2dE1LY2RXdE5TbzdLWTY1ZHIySXRTTFpxU2ZnTlZDY1owcSsremR1OEUwd0lEQVFBQm9BQXdEUVlKS29aSQpodmNOQVFFTEJRQURnZ0VCQURMZUtNOTVrZCtiZmhjMkRsWFF2dGNrYUswVmFiR2s5azVnVGdWVDJNSStZM3JWClRjYnR6RC9LVlZzQUhBLy9EWXg0cDNIRTBDd1Z0N1NzWHF3Wmc2YjhVdks2WTg4dS83YUNIdHFtRGcycEwrZEMKS2VJeG5hKzYwRE9xVy9MWjdBQnBYV1R3TlcwQmMzY3ZUNDZ0dDZCWFBWeTQ5czhuZE1kbnk5UXNkQjlhN0dMOQpJWHF5ZHc3OGlIREhVR1d0L0d0NC9iZzMwYnU3NFNXcnRGTzlyUWl0ejBCNEo0NnFJeTZ6bUJiOHkrSWgwMU55ClMzaHlRRG9JVWNnNG95ZmJ5Qis4ZVk3dThQeVBqa3JORy9Nb1BRVGdrMmkzb2VoUEgwbXR4VElyaWFpeEkvVE0KUU9YT1RCbnRCOUh0U1FBSVkvL3ExbTZsVVpYVW5TS0kyNjcyd21NPQotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
+  usages:
+  - client auth
+```
 
 ---
 
