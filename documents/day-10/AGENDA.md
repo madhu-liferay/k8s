@@ -17,15 +17,74 @@
 
 * ServiceAccount
 
+Apps, third-party, bots etc... (non-humans)
+
+namespace
+
+ClusterRole, ClusterRoleBinding
+
+```yml
+spec:
+  serviceAccount: <your-service-account-name>
+```
+
 * SecurityContext
+
+```yml
+spec:
+  securityContext:
+
+  containers:
+  - image: 
+    name:
+    securityContext:
+      capabilities:
+        add:
+        - 
+        drop
+        -
+      privileged: false (default)
+      readOnlyRootFilesystem:
+```
 
 * TLS Certificates Basic
 
+trust between two parties during a transaction
+
+Symmetric Encryption
+Asymmetric Encryption
+
+1. Root certificates ---> Root Server (Certificate Authority --> master)
+2. Server Certificates --> apiserver, etcd, kubelet
+3. Client Certificates --> apiserver, kubelet, kubeproxy, controller, scheduler
+
 * Certificates API
+
+```txt
+CertificateSigningRequest
+
+request: 
+
+```
+
+**NOTE**: base64 encoded format
+
+.crt
+
+```bash
+kubectl certificate approve <csr-name>
+```
 
 * Kubeconfig
 
+1. Clusters --> server, name, certificate-authority details
+2. Contexts --> tie up your user with the cluster
+3. Users --> client-key, client-certificate, name
 
+```bash
+kubectl config set-context --current --namespace=development
+kubectl config set-context --current --namespace=default
+```
 
 ---
 
@@ -33,7 +92,71 @@
 
 ---
 
+```yml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+```
 
+```yml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bb2-bb1
+  namespace: default
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          test: out # label set on bb2
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          test: in # label set on bb1
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+```bash
+kubectl label pod busybox1 test=in
+kubectl label pod busybox2 test=out
+```
+
+```yml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bb1-to-bb2
+  namespace: default
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          test: in
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          test: out
+  policyTypes:
+  - Ingress
+  - Egress
+```
 
 ---
 
@@ -49,13 +172,38 @@
 
 ---
 
+kube-dns ---> 10.96.0.10
 
+CoreDNS
+
+192.168.141.37, 
+192.168.141.38, 
+
+kubernetes --> 10.96.0.1
+
+```bash
+kubectl run busybox-pod --image=busybox:1.28.4
+```
+
+Services IPTables
+
+```bash
+sudo iptables-save | grep KUBE | grep nginx-svc
+```
 
 ---
 
 ### Docker Networking
 
 ---
+8 --->
+
+172.17.0.1/16
+
+ veth31176b0@if16
+
+ eth0@if17 ---> 172.17.0.2/16
+
 
 1. Create Network Namespace
 
@@ -196,7 +344,43 @@ spec:
 6. Create the Ingress object 
 
 ```yml
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: lion-king-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /simbaa
+        backend:
+          serviceName: simbaa-service
+          servicePort: 5678
+      - path: /timon
+        backend:
+          serviceName: timon-service
+          servicePort: 5678
+      - path: /pumbaa
+        backend:
+          serviceName: pumbaa-service
+          servicePort: 5678
+```
+rules--> http --> paths --> path
 
+
+```txt
+What you want is?
+http://ingress-service:ingress-service-port/simbaa ---> http://simbaa-service:service-port
+http://ingress-service:ingress-service-port/timon  -->  http://timon-service:service-port
+http://ingress-service:ingress-service-port/pumbaa -->  http://pumbaa-service:service-port
+
+Withour re-write target
+
+http://ingress-service:ingress-service-port/simbaa ---> http://simbaa-service:service-port/simbaa
+http://ingress-service:ingress-service-port/timon  -->  http://timon-service:service-port/timon
+http://ingress-service:ingress-service-port/pumbaa -->  http://pumbaa-service:service-port/pumbaa
 ```
 
 [Reference Link](https://github.com/kubernetes/ingress-nginx)
@@ -209,3 +393,7 @@ spec:
 
 ---
 
+Create a namespace called 'mynamespace' and a pod with image nginx called nginx on this namespace
+
+kubectl create ns mynamespace
+kubectl run nginx --image=nginx --namespace=mynamespace
