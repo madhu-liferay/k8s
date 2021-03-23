@@ -301,16 +301,18 @@ spec:
 
 ```bash
 # kubectl command to run a pod on v1.15
+# for creating pod before v1.18 use the flag --restart with the value `Never`
+kubectl run nginx-pod --image=nginx:alpine --restart=Never
 
 # kubectl command to run a pod on v1.18
-
+kubectl run nginx-pod --image=nginx:alpine
 ```
 
 ```bash
 # kubectl command to generate a pod template on v1.15
-
+kubectl run nginx-pod --image=nginx:alpine --restart=Never --labels=app=webserver,role=frontend --dry-run -o yaml > pod-template.yml 
 # kubectl command to generate a pod template on v1.18
-
+kubectl run nginx-pod --image=nginx:alpine --labels=app=webserver,role=frontend --dry-run=client -o yaml > pod-template.yml
 ```
 
 #### DEPLOYMENT
@@ -344,16 +346,16 @@ spec:
 
 ```bash
 # kubectl command to run a deployment on v1.15
-
+kubectl run nginx-deploy --image=nginx:alpine
 # kubectl command to run a deployment on v1.18
-
+kubectl create deployment nginx-deploy --image=nginx:alpine
 ```
 
 ```bash
 # kubectl command to generate a deployment template on v1.15
-
+kubectl run nginx-deploy --image=nginx:alpine --replicas=3 --dry-run -o yaml > deploy-template.yml
 # kubectl command to generate a deployment template on v1.18
-
+kubectl create deployment nginx-deploy --image=nginx:alpine --dry-run=client -o yaml > deploy-template.yml
 ```
 
 ---
@@ -381,10 +383,11 @@ kubectl get endpoints
 
 ```bash
 # kubectl command to expose a service
+kubectl expose deploy nginx-deploy --name=nginx-svc --port=80 --type=NodePort
 
+# template
+kubectl expose deploy nginx-deploy --name=nginx-svc --port=80 --type=NodePort --dry-run -o yaml > nodeport-template.yml
 ```
-
-
 
 ---
 
@@ -517,10 +520,32 @@ sudo mv ~/kube-scheduler.yaml /etc/kubernetes/manifests/kube-scheduler.yaml
 
 ---
 
+```bash
+kubectl describe nodes kmaster | grep -i taints 
+```
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-bootcamp-pod
+  labels:
+    app: k8s-bootcamp-app
+spec:
+  containers:
+  - name: k8s-bootcamp-container
+    image: gcr.io/google-samples/kubernetes-bootcamp:v1
+    ports:
+    - containerPort: 8080
+  tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+```
+
 [Command Reference](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#taint)
 
 [Property Reference](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/#concepts)
-
 
 ---
 
@@ -528,11 +553,60 @@ sudo mv ~/kube-scheduler.yaml /etc/kubernetes/manifests/kube-scheduler.yaml
 
 ---
 
+```bash
+kubectl label nodes kmaster machine=control-plane
+```
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-bootcamp-pod
+  labels:
+    app: k8s-bootcamp-app
+spec:
+  containers:
+  - name: k8s-bootcamp-container
+    image: gcr.io/google-samples/kubernetes-bootcamp:v1
+    ports:
+    - containerPort: 8080
+  nodeSelector:
+    machine: control-plane
+```
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-bootcamp-pod
+  labels:
+    app: k8s-bootcamp-app
+spec:
+  containers:
+  - name: k8s-bootcamp-container
+    image: gcr.io/google-samples/kubernetes-bootcamp:v1
+    ports:
+    - containerPort: 8080
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: machine
+            operator: In
+            values:
+            - control-plane
+```
+
 [Reference Link](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector) 
 
 ---
 
 ### Taints & Tolerations, and Node Affinity
+
+---
+
+Refer the image for explanation, you can use both the concept to tie a pod to specific node.
 
 ---
 
